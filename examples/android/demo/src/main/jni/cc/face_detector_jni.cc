@@ -194,7 +194,7 @@ JNIEXPORT JNICALL jobjectArray TNN_FACE_DETECTOR(detectFromImage)(JNIEnv *env, j
         return 0;
     }
 
-    if ( AndroidBitmap_lockPixels(env, imageSource, &sourcePixelscolor) < 0) {
+    if (AndroidBitmap_lockPixels(env, imageSource, &sourcePixelscolor) < 0) {
         return 0;
     }
     TNN_NS::BenchOption bench_option;

@@ -15,7 +15,7 @@
 #define TNN_INCLUDE_TNN_VERSION_H_
 
 static char *branch_name_tnn = "master";
-static char *commit_date_tnn = "2022-08-10";
-static char *commit_hash_tnn = "56da812c";
+static char *commit_date_tnn = "2022-08-12";
+static char *commit_hash_tnn = "1bd46e09";
 
 #endif //TNN_INCLUDE_TNN_VERSION_H_

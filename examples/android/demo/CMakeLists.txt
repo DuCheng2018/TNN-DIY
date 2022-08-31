@@ -24,7 +24,8 @@ include_directories(${UTILS_SRC}/)
 include_directories(${CMAKE_SOURCE_DIR}/src/main/jni/cc/)
 include_directories(${CMAKE_SOURCE_DIR}/src/main/jni/thirdparty/hiai_ddk/include)
 
-set(CMAKE_BUILD_TYPE Release)
+#set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 
 set(TNN_OPENCL_ENABLE ON CACHE BOOL "" FORCE)
 set(TNN_ARM_ENABLE ON CACHE BOOL "" FORCE)
