@@ -50,7 +50,7 @@ Status BaseLayer::Init(Context* context, LayerParam* param, LayerResource* resou
         LOGE("InferOutputDataType failed\n");
         return status;
     }
-    
+
     if (!output_blobs_[0]->NeedAllocateInForward()){
         status = InferOutputShape();
         if (status != TNN_OK) {
@@ -58,7 +58,7 @@ Status BaseLayer::Init(Context* context, LayerParam* param, LayerResource* resou
             return status;
         }
     }
-    
+
     if (runtime_model_ == RUNTIME_MODE_NORMAL) {
         for (auto& output_blob : output_blobs) {
             LOGD("InferOutputShape: %s\n", output_blob->GetBlobDesc().description().c_str());
@@ -101,14 +101,14 @@ Status BaseLayer::InferOutputShape(bool ignore_error) {
             continue;
         }
         iter->GetBlobDesc().data_type = (*const_resource)[name]->GetDataType();
-        
+
         //only DATA_FLAG_CHANGE_NEVER read dims and type from const resource
         //blob with flag DATA_FLAG_CHANGE_IF_SHAPE_DIFFER may change dims in runtime
         if (DataFlagUtils::ChangeStatus(iter->GetFlag()) == DATA_FLAG_CHANGE_NEVER) {
             iter->GetBlobDesc().dims = (*const_resource)[name]->GetBufferDims();
         }
     }
-    
+
     //
     if (runtime_model_ == RUNTIME_MODE_NORMAL || GetLayerChangeFlag() == DATA_FLAG_CHANGE_NEVER) {
         return FillLayerParamWithConstantResource();
@@ -118,10 +118,10 @@ Status BaseLayer::InferOutputShape(bool ignore_error) {
 
 Status BaseLayer::InferOutputDataType() {
     auto const_resource = const_resource_;
-    
+
     // Init base type, will re write in different device acc
     // output data_type = input_data_tyep as default.
-    
+
     int flag = DATA_FLAG_CHANGE_NEVER;
     for (auto iter : input_blobs_) {
         if (const_resource) {
@@ -133,7 +133,7 @@ Status BaseLayer::InferOutputDataType() {
         }
         flag = DataFlagUtils::MinChangeStatus(flag, iter->GetFlag());
     }
-    
+
     //find first blob which is not const
     auto input_blob_not_const = input_blobs_[0];
     for (auto input_blob : input_blobs_) {
@@ -142,11 +142,11 @@ Status BaseLayer::InferOutputDataType() {
             break;
         }
     }
-    
+
     for (auto output_blob : output_blobs_) {
         output_blob->GetBlobDesc().data_type = input_blob_not_const->GetBlobDesc().data_type;
     }
-    
+
     for (auto iter : output_blobs_) {
         if (runtime_model_ == RUNTIME_MODE_NORMAL) {
             if (const_resource != nullptr && const_resource->find(iter->GetBlobDesc().name) != const_resource->end()) {
@@ -165,8 +165,10 @@ Status BaseLayer::InferOutputDataType() {
 }
 
 Status BaseLayer::Reshape() {
+    // LOGE("layer: %s\n", this->GetLayerName().c_str());
     if (!output_blobs_[0]->NeedAllocateInForward()) {
         auto status = InferOutputShape();
+        // LOGE("layer inference output shape done\n");
         RETURN_ON_NEQ(status, TNN_OK);
 
         auto dims = output_blobs_[0]->GetBlobDesc().dims;
@@ -180,6 +182,7 @@ Status BaseLayer::Reshape() {
     if (layer_acc_ != NULL) {
         auto status = layer_acc_->ReloadConstantBlobs(input_blobs_, true);
         RETURN_ON_NEQ(status, TNN_OK);
+        // LOGE("end layer acc reshape\n");
         return layer_acc_->Reshape(input_blobs_, output_blobs_);
     } else {
         LOGE("layer acc is nil\n");
@@ -201,11 +204,11 @@ Status BaseLayer::Forward() {
         } else {
             //dont check the status of InferOutputShape in constant folding
             auto status = InferOutputShape(true);
-            
+
             //fill layer param and infer runtime output shape in BeforeForward
             status = layer_acc_->BeforeForward(input_blobs_, output_blobs_);
             RETURN_ON_NEQ(status, TNN_OK);
-            
+
             if (IsOutputConstant()) {
                 status = layer_acc_->AllocateRuntimeOutputBlob(input_blobs_, output_blobs_);
                 RETURN_ON_NEQ(status, TNN_OK);
@@ -216,7 +219,7 @@ Status BaseLayer::Forward() {
                 RETURN_ON_NEQ(status, TNN_OK);
             }
         }
-        
+
         return layer_acc_->AfterForward(input_blobs_, output_blobs_);
     } else {
         LOGE("layer acc is nil\n");

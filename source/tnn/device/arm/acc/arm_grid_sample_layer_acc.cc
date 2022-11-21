@@ -40,6 +40,11 @@ static void ComputeNCHW(const std::vector<Blob *> &inputs, const std::vector<Blo
     auto input_channel_area  = DimsVectorUtils::Count(input_dims, 2);
     auto grid_area           = DimsVectorUtils::Count(grid_dims, 1);
     auto output_channel_area = DimsVectorUtils::Count(output_dims, 2);
+    // if (nullptr == grid_blob->GetHandle().base) {
+        // LOGE("grid blob handle nullptr");
+    // } else {
+        // LOGE("grid blob handle bytes_offset:%llu", grid_blob->GetHandle().bytes_offset);
+    // }
     auto input_base_ptr      = reinterpret_cast<float *>(GetBlobHandlePtr(input_blob->GetHandle()));
     auto grid_base_ptr       = reinterpret_cast<float *>(GetBlobHandlePtr(grid_blob->GetHandle()));
     auto output_base_ptr     = reinterpret_cast<float *>(GetBlobHandlePtr(output_blob->GetHandle()));
@@ -115,6 +120,11 @@ static void ComputeNC4HW4(const std::vector<Blob *> &inputs, const std::vector<B
     auto output_channel_area = DimsVectorUtils::Count(output_dims, 2);
     auto channel_ud4         = UP_DIV(channel, 4);
     auto grid_channel_ud4    = UP_DIV(grid_dims[1], 4);
+    // if (nullptr == grid_blob->GetHandle().base) {
+        // LOGE("grid blob handle nullptr");
+    // } else {
+        // LOGE("grid blob handle bytes_offset:%llu", grid_blob->GetHandle().bytes_offset);
+    // }
     auto input_base_ptr      = reinterpret_cast<float *>(GetBlobHandlePtr(input_blob->GetHandle()));
     auto grid_base_ptr       = reinterpret_cast<float *>(GetBlobHandlePtr(grid_blob->GetHandle()));
     auto output_base_ptr     = reinterpret_cast<float *>(GetBlobHandlePtr(output_blob->GetHandle()));

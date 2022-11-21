@@ -11,6 +11,7 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
+#include <sstream>
 
 #include "tnn/device/opencl/acc/opencl_layer_acc.h"
 #include "tnn/device/opencl/imagebuffer_convertor.h"
@@ -24,10 +25,10 @@ public:
 
     virtual Status Reshape(const std::vector<Blob *> &inputs, const std::vector<Blob *> &outputs) override;
 
-    virtual Status ReloadConstantBlobs(const std::vector<Blob *> &inputs,
-                                       bool only_reload_shape_differ_blob = false) override {
-        return TNN_OK;
-    }
+    // virtual Status ReloadConstantBlobs(const std::vector<Blob *> &inputs,
+                                       // bool only_reload_shape_differ_blob = false) override {
+        // return TNN_OK;
+    // }
 };
 
 Status OpenCLGridsampleLayerAcc::Init(Context *context, LayerParam *param, LayerResource *resource,
@@ -63,7 +64,6 @@ Status OpenCLGridsampleLayerAcc::Init(Context *context, LayerParam *param, Layer
 }
 
 Status OpenCLGridsampleLayerAcc::Reshape(const std::vector<Blob *> &inputs, const std::vector<Blob *> &outputs) {
-    LOGD("Girdsample Acc Reshape\n");
     Status ret = OpenCLLayerAcc::Reshape(inputs, outputs);
     CHECK_TNN_OK(ret)
 
@@ -76,6 +76,7 @@ Status OpenCLGridsampleLayerAcc::Reshape(const std::vector<Blob *> &inputs, cons
         return Status(TNNERR_PARAM_ERR,
                       "OpenclGridSampleLayerAcc dont support some mode or pade type or align_corners");
     }
+    LOGE("start Girdsample Acc Reshape:%d, %d, %d\n", gridsample_param->mode, gridsample_param->pad_type, gridsample_param->align_corners);
 
     auto input  = inputs[0];
     auto grid   = inputs[1];
@@ -102,14 +103,43 @@ Status OpenCLGridsampleLayerAcc::Reshape(const std::vector<Blob *> &inputs, cons
     output_upheight[2]   = UP_DIV(output_upheight[2], 4);
     idx                  = SetExecuteUnit2DSizeInfoDefault(execute_units_[0], output_upheight);
 
+    // LOGE("start Girdsample Acc Reshape: input_dims size:%d, output_dims size:%d\n", input_dims.size(), output_dims.size());
     execute_units_[0].ocl_kernel.setArg(idx++, *((cl::Image *)input->GetHandle().base));
-    execute_units_[0].ocl_kernel.setArg(idx++, *((cl::Image *)grid->GetHandle().base));
+    // LOGE("1\n");
     execute_units_[0].ocl_kernel.setArg(idx++, *((cl::Image *)output->GetHandle().base));
+    // LOGE("3\n");
+    // std::stringstream tmp;
+    // for (auto& d : grid->GetBlobDesc().dims) {
+        // tmp << d << ",";
+    // }
+    // LOGE("grid blob dims:%s", tmp.str().c_str());
+    // if (nullptr == grid->GetHandle().base) {
+        // LOGE("grid blob:%s handle nullptr\n", grid->GetBlobDesc().name.c_str());
+    // } else {
+        // LOGE("grid blob handle bytes_offset:%llu\n", grid->GetHandle().bytes_offset);
+    // }
+    // if (nullptr == input->GetHandle().base) {
+        // LOGE("input blob handle nullptr\n");
+    // } else {
+        // LOGE("input blob handle bytes_offset:%llu\n", input->GetHandle().bytes_offset);
+    // }
+    // if (nullptr == output->GetHandle().base) {
+        // LOGE("output blob handle nullptr\n");
+    // } else {
+        // LOGE("output blob handle bytes_offset:%llu\n", output->GetHandle().bytes_offset);
+    // }
+    execute_units_[0].ocl_kernel.setArg(idx++, *((cl::Image *)grid->GetHandle().base));
+    // LOGE("2\n");
 
     execute_units_[0].ocl_kernel.setArg(idx++, static_cast<int32_t>(input_height));
+    // LOGE("4\n");
     execute_units_[0].ocl_kernel.setArg(idx++, static_cast<int32_t>(input_width));
+    // LOGE("5\n");
     execute_units_[0].ocl_kernel.setArg(idx++, static_cast<int32_t>(output_height));
+    // LOGE("6\n");
     execute_units_[0].ocl_kernel.setArg(idx++, static_cast<int32_t>(output_width));
+    // LOGE("7\n");
+    // LOGE("end Girdsample Acc Reshape\n");
 
     return TNN_OK;
 }

@@ -121,12 +121,14 @@ Status DefaultNetwork::Init(NetworkConfig &net_config, ModelConfig &model_config
     ret = InitLayers(net_structure, net_resource);
     RETURN_ON_NEQ(ret, TNN_OK);
 
+    LOGE("allocate blob memory start.\n");
     ret = AllocateBlobMemory();
+    LOGE("allocate blob memory done.\n");
     RETURN_ON_NEQ(ret, TNN_OK);
 
     net_structure_ = net_structure;
     net_resource_ = net_resource;
-    
+
     ret = context_->OnInstanceReshapeBegin();
     RETURN_ON_NEQ(ret, TNN_OK);
 
@@ -157,7 +159,7 @@ static inline bool IsLayoutReformatLayer(std::shared_ptr<LayerInfo> layer) {
 Status DefaultNetwork::InitLayers(NetStructure *net_structure, NetResource *net_resource) {
     Status ret            = TNN_OK;
     bool is_quantized_net = GetQuantizedInfoFromNetStructure(net_structure);
-    
+
     // mark const blobs and blob data type
     auto const_blobs = net_resource->constant_map;
     for (auto layer_info : net_structure->layers) {
@@ -172,7 +174,7 @@ Status DefaultNetwork::InitLayers(NetStructure *net_structure, NetResource *net_
             }
         }
     }
-    
+
 
     auto const_layers = net_resource->constant_layers;
     // update blob precision, alloc new blob required
@@ -180,7 +182,7 @@ Status DefaultNetwork::InitLayers(NetStructure *net_structure, NetResource *net_
         if (runtime_model_ == RUNTIME_MODE_NORMAL && const_layers.find(layer_info->name) != const_layers.end()) {
             continue;
         }
-        
+
         // set layer nodes
         std::vector<std::string> &input_names  = layer_info->inputs;
         std::vector<std::string> &output_names = layer_info->outputs;
@@ -255,7 +257,7 @@ Status DefaultNetwork::InitLayers(NetStructure *net_structure, NetResource *net_
         if (runtime_model_ == RUNTIME_MODE_NORMAL && const_layers.find(layer_info->name) != const_layers.end()) {
             continue;
         }
-        
+
         LayerType type       = layer_info->type;
         BaseLayer *cur_layer = CreateLayer(type);
         if (cur_layer == NULL) {
@@ -280,7 +282,7 @@ Status DefaultNetwork::InitLayers(NetStructure *net_structure, NetResource *net_
                 // only need to update model's input blob datatype
                 // others are already updated in UpdateBlobPrecision method
                 const auto src_data_type = blob->GetBlobDesc().data_type;
-                bool update_precision = (src_data_type == DATA_TYPE_FLOAT || src_data_type == DATA_TYPE_HALF || 
+                bool update_precision = (src_data_type == DATA_TYPE_FLOAT || src_data_type == DATA_TYPE_HALF ||
                     src_data_type == DATA_TYPE_BFP16);
                 if (net_structure->inputs_shape_map.find(name) != net_structure->inputs_shape_map.end() && update_precision) {
                     auto dtype = blob_manager_->GetBlob(layer_info->outputs[0])->GetBlobDesc().data_type;
@@ -312,7 +314,7 @@ Status DefaultNetwork::InitLayers(NetStructure *net_structure, NetResource *net_
         if (net_resource->resource_map.count(layer_name) != 0) {
             layer_resource = net_resource->resource_map[layer_name].get();
         }
-        
+
         cur_layer->SetRuntimeMode(runtime_model_);
         cur_layer->SetConstantResource(&net_resource->constant_map);
         cur_layer->SetConstantResourceFlag(&net_resource->constant_blob_flags);
@@ -458,7 +460,7 @@ Status DefaultNetwork::Reshape(const InputShapesMap &inputs) {
     bool shape_changed = false;
     ret = PrepareDoReshape(inputs, shape_changed);
     if(ret != TNN_OK) {
-        return ret; 
+        return ret;
     }
     if(shape_changed) {
         return DoReshape();
@@ -511,7 +513,7 @@ Status DefaultNetwork::DeInit() {
         delete blob_manager_;
         blob_manager_ = NULL;
     }
-    
+
     if (runtime_blob_pool_ != nullptr) {
         delete runtime_blob_pool_;
         runtime_blob_pool_ = nullptr;
@@ -558,22 +560,22 @@ Context* DefaultNetwork::GetContext() {
 Status DefaultNetwork::Forward() {
     auto status = blob_manager_->CheckBlobMemoryState();
     RETURN_ON_NEQ(status, TNN_OK);
-    
+
     if (runtime_blob_pool_) {
         //now we allocate blob eachtime when running acc, so clear blob pool to avoid memory leak
         runtime_blob_pool_->ClearBlobMemoryPool();
     }
-    
+
     status = context_->OnInstanceForwardBegin();
     RETURN_ON_NEQ(status, TNN_OK);
-    
+
     int cnt = 0;
     for (auto layer : layers_) {
         std::vector<Blob *> inputs  = layer->GetInputBlobs();
         std::vector<Blob *> outputs = layer->GetOutputBlobs();
 
         {
-            
+
 #if DUMP_INPUT_BLOB
             if (runtime_model_ == RUNTIME_MODE_NORMAL) {
                 // InputBlob data in dumped into files in NCHW_FLOAT format as default
@@ -595,7 +597,7 @@ Status DefaultNetwork::Forward() {
                 }
             }
 #endif  // DUMP_INPUT_BLOB
-            
+
             status = layer->Forward();
             LOGD("layer name: %s, forward result: %d \n", layer->GetLayerName().c_str(), (int)status);
             LOGD("Output Shape: [%s]\n", layer->GetOutputBlobs()[0]->GetBlobDesc().description().c_str());
@@ -626,7 +628,7 @@ Status DefaultNetwork::Forward() {
             }
 #endif  // DUMP_OUTPUT_BLOB
         }
-        
+
         cnt++;
     }
     context_->OnInstanceForwardEnd();
@@ -704,12 +706,14 @@ std::string DefaultNetwork::GenerateCacheFileName(ModelConfig &model_config, std
 }
 
 Status DefaultNetwork::ReshapeLayers() {
+    LOGE("start reshape layers");
     for (auto cur_layer : layers_) {
         auto status = cur_layer->Reshape();
         RETURN_ON_NEQ(status, TNN_OK);
         //Note output shape may not change after reshape for const folder, but will do change after forward because shape may be determined at rumtime
-        LOGD("ReshapeLayers Output Shape: [%s]\n", cur_layer->GetOutputBlobs()[0]->GetBlobDesc().description().c_str());
+        // LOGE("ReshapeLayers Output Shape: [%s]\n", cur_layer->GetOutputBlobs()[0]->GetBlobDesc().description().c_str());
     }
+    LOGE("end reshape layers");
     return TNN_OK;
 }
 

@@ -9,7 +9,7 @@
 //
 // Unless required by applicable law or agreed to in writing, software distributed
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
 #include "onnx_op_converter.h"
@@ -30,10 +30,14 @@ string OnnxOpConverterGridSample::TNNLayerParam(NodeProto &node,
         //bilinear
         layer_param << "2 ";
     } else {
-        LOGE("GridSample dont support mode\n");
+        if (mode.size() > 0) {
+            LOGE("GridSample dont support mode:%d\n", mode[0]);
+        } else {
+            LOGE("GridSample mode size == 0\n");
+        }
         return "";
     }
-    
+
     auto pade_type = get_node_attr_ai(node, "padding_mode", net_info, 3);
     if (pade_type.size() > 0 && pade_type[0] == 0) {
         //padding zeros
@@ -42,7 +46,7 @@ string OnnxOpConverterGridSample::TNNLayerParam(NodeProto &node,
         LOGE("GridSample dont support pade_type\n");
         return "";
     }
-    
+
     auto align_corners = get_node_attr_ai(node, "align_corners", net_info, 4);
     if (align_corners.size() > 0 && align_corners[0] == 0) {
         //false
@@ -51,7 +55,7 @@ string OnnxOpConverterGridSample::TNNLayerParam(NodeProto &node,
         LOGE("GridSample dont support align_corners\n");
         return "";
     }
-    
+
     return layer_param.str();
 }
 

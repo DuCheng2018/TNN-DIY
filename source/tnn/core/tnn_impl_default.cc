@@ -67,7 +67,7 @@ Status TNNImplDefault::GetModelInputShapesMap(InputShapesMap& shapes_map) {
     CHECK_PARAM_NULL(default_interpreter);
     shapes_map = default_interpreter->GetNetStructure()->inputs_shape_map;
     return TNN_OK;
-} 
+}
 
 
 std::shared_ptr<Instance> TNNImplDefault::CreateInst(NetworkConfig& net_config, Status& status,
