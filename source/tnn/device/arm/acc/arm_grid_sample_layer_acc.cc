@@ -26,7 +26,7 @@ static inline bool within_bounds_2d(int32_t h, int32_t w, int32_t H, int32_t W) 
     return h >= 0 && h < H && w >= 0 && w < W;
 }
 
-static void ComputeNCHW(const std::vector<Blob *> &inputs, const std::vector<Blob *> &outputs) {
+static void ComputeNCHW(const std::vector<Blob *> &inputs, const std::vector<Blob *> &outputs, int8_t align_corners) {
     auto input_blob          = inputs[0];
     auto grid_blob           = inputs[1];
     auto output_blob         = outputs[0];
@@ -59,8 +59,14 @@ static void ComputeNCHW(const std::vector<Blob *> &inputs, const std::vector<Blo
             float x            = grid_position[0];
             float y            = grid_position[1];
             // unnormalize
-            float ix = (x + 1) * input_width * 0.5 - 0.5;
-            float iy = (y + 1) * input_height * 0.5 - 0.5;
+            float ix, iy;
+            if (0 == align_corners) {
+                ix = (x + 1) * input_width * 0.5 - 0.5;
+                iy = (y + 1) * input_height * 0.5 - 0.5;
+            } else {
+                ix = (x + 1) * 0.5 * (input_width - 1.0);
+                iy = (y + 1) * 0.5 * (input_height - 1.0);
+            }
             // get corner pixel values from (x, y)
             // for 4d, we use north-east-south-west
             int ix_nw = static_cast<int>(std::floor(ix));
@@ -103,7 +109,7 @@ static void ComputeNCHW(const std::vector<Blob *> &inputs, const std::vector<Blo
     }
 }
 
-static void ComputeNC4HW4(const std::vector<Blob *> &inputs, const std::vector<Blob *> &outputs) {
+static void ComputeNC4HW4(const std::vector<Blob *> &inputs, const std::vector<Blob *> &outputs, int8_t align_corners) {
     auto input_blob          = inputs[0];
     auto grid_blob           = inputs[1];
     auto output_blob         = outputs[0];
@@ -148,8 +154,14 @@ static void ComputeNC4HW4(const std::vector<Blob *> &inputs, const std::vector<B
                 float x            = grid_position[0];
                 float y            = grid_position[1];
                 // unnormalize
-                float ix = (x + 1) * input_width * 0.5 - 0.5;
-                float iy = (y + 1) * input_height * 0.5 - 0.5;
+                float ix, iy;
+                if (0 == align_corners) {
+                    ix = (x + 1) * input_width * 0.5 - 0.5;
+                    iy = (y + 1) * input_height * 0.5 - 0.5;
+                } else {
+                    ix = (x + 1) * 0.5 * (input_width - 1.0);
+                    iy = (y + 1) * 0.5 * (input_height - 1.0);
+                }
                 // get corner pixel values from (x, y)
                 // for 4d, we use north-east-south-west
                 int ix_nw = static_cast<int>(std::floor(ix));
@@ -203,7 +215,7 @@ Status ArmGridSampleLayerAcc::DoForward(const std::vector<Blob *> &inputs, const
     auto grid_blob  = inputs[1];
     auto input_dims = input_blob->GetBlobDesc().dims;
     auto grid_dims  = grid_blob->GetBlobDesc().dims;
-    if (!(input_dims.size() == 4 && param->mode == 2 && param->pad_type == 0 && param->align_corners == 0)) {
+    if (!(input_dims.size() == 4 && param->mode == 2 && param->pad_type == 0 && (param->align_corners == 0 || param->align_corners == 1))) {
         LOGE("Error: Arm layer acc don't support GridSample input size(%lu) or param:(%d, %d, %d)\n", input_dims.size(),
              param->mode, param->pad_type, param->align_corners);
         return Status(TNNERR_MODEL_ERR, "Error: Arm layer acc don't support.\n");
@@ -211,9 +223,9 @@ Status ArmGridSampleLayerAcc::DoForward(const std::vector<Blob *> &inputs, const
     if (input_blob->GetBlobDesc().data_type == DATA_TYPE_FLOAT) {
         auto data_format = input_blob->GetBlobDesc().data_format;
         if (data_format == DATA_FORMAT_NC4HW4) {
-            ComputeNC4HW4(inputs, outputs);
+            ComputeNC4HW4(inputs, outputs, param->align_corners);
         } else if (data_format == DATA_FORMAT_NCHW) {
-            ComputeNCHW(inputs, outputs);
+            ComputeNCHW(inputs, outputs, param->align_corners);
         }
     } else {
         LOGE("Error: Arm layer acc don't support datatype: %d\n", inputs[0]->GetBlobDesc().data_type);

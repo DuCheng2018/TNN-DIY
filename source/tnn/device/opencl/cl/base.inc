@@ -7,7 +7,7 @@ typedef struct shape_6d { int data[6];} shape_6d;
 
 __constant sampler_t SAMPLER = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 
-#define GLOBAL_SIZE_1_DIMS __private const int global_size_dim0,   
+#define GLOBAL_SIZE_1_DIMS __private const int global_size_dim0,
 
 #define GLOBAL_SIZE_2_DIMS __private const int global_size_dim0, __private const int global_size_dim1,
 

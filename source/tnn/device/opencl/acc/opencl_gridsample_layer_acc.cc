@@ -48,7 +48,14 @@ Status OpenCLGridsampleLayerAcc::Init(Context *context, LayerParam *param, Layer
     // create kernel
     std::string kernel_name;
     if (gridsample_param->mode == 2) {  // bilinear
-        kernel_name = "BilinearGridSample";
+        if (gridsample_param->align_corners == 0) {
+            kernel_name = "BilinearGridSampleCornerAlign";
+        } else if (gridsample_param->align_corners == 1) {
+            kernel_name = "BilinearGridSampleCenterAlign";
+        } else {
+            LOGE("Not support Gridsample align_corners type: %d\n", gridsample_param->align_corners);
+            return Status(TNNERR_OPENCL_ACC_INIT_ERROR, "invalid align_corners type");
+        }
     } else {
         LOGE("Not support Gridsample type: %d\n", gridsample_param->mode);
         return Status(TNNERR_OPENCL_ACC_INIT_ERROR, "invalid upsample mode");
@@ -72,11 +79,11 @@ Status OpenCLGridsampleLayerAcc::Reshape(const std::vector<Blob *> &inputs, cons
         LOGE("Error: layer param is null\n");
         return Status(TNNERR_MODEL_ERR, "Error: layer param is null");
     }
-    if (gridsample_param->mode != 2 || gridsample_param->pad_type != 0 || gridsample_param->align_corners != 0) {
+    if (gridsample_param->mode != 2 || gridsample_param->pad_type != 0 || (gridsample_param->align_corners != 0 && gridsample_param->align_corners != 1)) {
         return Status(TNNERR_PARAM_ERR,
                       "OpenclGridSampleLayerAcc dont support some mode or pade type or align_corners");
     }
-    LOGE("start Girdsample Acc Reshape:%d, %d, %d\n", gridsample_param->mode, gridsample_param->pad_type, gridsample_param->align_corners);
+    LOGE("start Girdsample Acc Reshape params: %d, %d, %d\n", gridsample_param->mode, gridsample_param->pad_type, gridsample_param->align_corners);
 
     auto input  = inputs[0];
     auto grid   = inputs[1];
