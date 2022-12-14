@@ -46,7 +46,6 @@ Status Instance::Init(std::shared_ptr<AbstractModelInterpreter> interpreter, Inp
 }
 
 Status Instance::Init(std::shared_ptr<AbstractModelInterpreter> interpreter, InputShapesMap min_inputs_shape, InputShapesMap max_inputs_shape) {
-    
     auto type = net_config_.device_type;
     if(type == DEVICE_APPLE_NPU) {
         //use DEVICE_ARM OR DEVICE_X86 according to hardware
@@ -55,12 +54,12 @@ Status Instance::Init(std::shared_ptr<AbstractModelInterpreter> interpreter, Inp
 #else
         type = DEVICE_X86;
 #endif
-        
+
     }
     auto device = GetDevice(type);
     LOGE_IF(!device, "device is nil or unsupported for type: %d\n", type);
     RETURN_VALUE_ON_NEQ(device != NULL, true, TNNERR_DEVICE_NOT_SUPPORT);
-    
+
     if (interpreter) {
         interpreter_ = interpreter->Copy();
         if (nullptr == interpreter_) {
@@ -69,7 +68,7 @@ Status Instance::Init(std::shared_ptr<AbstractModelInterpreter> interpreter, Inp
             interpreter_ = interpreter;
         }
     }
-    
+
     auto default_interpreter = dynamic_cast<DefaultModelInterpreter *>(interpreter_.get());
 
     auto network_type = net_config_.network_type;
@@ -89,7 +88,7 @@ Status Instance::Init(std::shared_ptr<AbstractModelInterpreter> interpreter, Inp
             return ret;
         }
 
-        LOGI("Init network failed. Try to re-init it with const folder, and if succeed all of error info above can be ignored.\n");
+        LOGE("Init network failed. Try to re-init it with const folder, and if succeed all of error info above can be ignored.\n");
         network_.reset();
     }
 
@@ -106,17 +105,17 @@ Status Instance::Init(std::shared_ptr<AbstractModelInterpreter> interpreter, Inp
             status = const_folder->Reshape(min_inputs_shape);
             RETURN_ON_NEQ(status, TNN_OK);
             auto min_blob_shapes_map = default_interpreter->GetNetResource()->blob_shapes_map;
-                
+
             //Note output shape may not change after reshape for const folder, but will do change after forward because shape may be determined at rumtime
             status = const_folder->Reshape(max_inputs_shape);
             RETURN_ON_NEQ(status, TNN_OK);
-                
+
             default_interpreter->GetNetResource()->min_blob_shapes_map = min_blob_shapes_map;
         } else {
             auto max_constant_map = default_interpreter->GetNetResource()->blob_shapes_map;
             default_interpreter->GetNetResource()->min_blob_shapes_map = max_constant_map;
         }
-     
+
         const_folder_ = const_folder;
     }
 

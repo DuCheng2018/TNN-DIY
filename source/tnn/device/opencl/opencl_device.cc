@@ -11,6 +11,7 @@
 // under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
+// #include <sstream>
 
 #include "tnn/device/opencl/opencl_device.h"
 
@@ -35,7 +36,7 @@ BlobMemorySizeInfo OpenCLDevice::Calculate(BlobDesc& desc) {
     BlobMemorySizeInfo info = Calculate2DCLImageMemorySize(desc);
     ASSERT(info.dims.size() == 2);
     if (info.dims[0] > image_2d_max_size[0] || info.dims[1] > image_2d_max_size[1]) {
-        LOGD("Exceed clImage limit, dims: [%d, %d]\n", info.dims[0], info.dims[1]);
+        LOGE("Exceed clImage limit, dims: [%d, %d], image2d size:[%lu, %lu]\n", info.dims[0], info.dims[1], image_2d_max_size[0], image_2d_max_size[1]);
         desc.data_format = DATA_FORMAT_NCHW;
         info = Calculate1DMemorySize(desc);
     }

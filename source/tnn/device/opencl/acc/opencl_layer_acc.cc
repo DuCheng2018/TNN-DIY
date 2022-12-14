@@ -40,6 +40,7 @@ Status OpenCLLayerAcc::Init(Context *context, LayerParam *param, LayerResource *
     if (context->GetPrecision() != PRECISION_HIGH) {
         LOGD("OpenCL Blob Pricision is Half!\n");
         for (auto blob : inputs) {
+            // LOGE("blob name:%s\n", blob->GetBlobDesc().name.c_str());
             blob->GetBlobDesc().data_type = blob->GetBlobDesc().data_type == DATA_TYPE_INT32 ? DATA_TYPE_INT32 : DATA_TYPE_HALF;
         }
         for (auto blob : outputs) {
@@ -60,8 +61,14 @@ Status OpenCLLayerAcc::Init(Context *context, LayerParam *param, LayerResource *
 
     ConfigKernelStrategy();
 
+    // for (const auto& iter : inputs) {
+        // LOGE("blob name after ConfigKernelStrategy:%s\n", iter->GetBlobDesc().name.c_str());
+    // }
     status = ReloadConstantBlobs(inputs, false);
     RETURN_ON_NEQ(status, TNN_OK);
+    // for (const auto& iter : inputs) {
+        // LOGE("blob name after ReloadConstantBlobs:%s\n", iter->GetBlobDesc().name.c_str());
+    // }
 
     if (param->extra_config.count("opencl_force_fp32")) {
         build_options_.insert("-DFORCE_FP32");
@@ -308,6 +315,9 @@ Status OpenCLLayerAcc::ReloadConstantBlobs(const std::vector<Blob *> &inputs, bo
     auto const_resource = const_resource_;
     auto const_resource_flag = const_resource_flag_;
     auto const_blob_map = const_blob_map_;
+    // for (const auto& iter : inputs) {
+        // LOGE("blob name in ReloadConstantBlobs:%s\n", iter->GetBlobDesc().name.c_str());
+    // }
     for (auto iter : inputs) {
         auto name = iter->GetBlobDesc().name;
         if (const_resource == nullptr || const_resource->find(name) == const_resource->end()) {

@@ -30,7 +30,11 @@ string OnnxOpConverterGridSample::TNNLayerParam(NodeProto &node,
         //bilinear
         layer_param << "2 ";
     } else {
-        LOGE("GridSample dont support mode\n");
+        if (mode.size() > 0) {
+            LOGE("GridSample dont support mode:%d\n", mode[0]);
+        } else {
+            LOGE("GridSample mode size == 0\n");
+        }
         return "";
     }
 

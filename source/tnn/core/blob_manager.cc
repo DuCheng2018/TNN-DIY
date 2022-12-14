@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cstring>
 #include <set>
+// #include <sstream>
 
 #include "tnn/memory_manager/blob_memory_pool_factory.h"
 #include "tnn/memory_manager/blob_memory_size_info.h"
@@ -33,6 +34,7 @@ BlobManager::BlobManager(AbstractDevice *device) {
     // create 1d memory pool
     blob_memory_pool_map_[1] = BlobMemoryPoolFactory::CreateBlobMemoryPool(device);
     if (device->GetDeviceType() == DEVICE_OPENCL) {
+        LOGE("set blob_memory_pool_map_ in opencl\n");
         // create 2d memory pool
         blob_memory_pool_map_[2] = BlobMemoryPoolFactory::CreateBlobMemoryPool(device, 2);
     }
@@ -60,6 +62,7 @@ static void UpdateDeviceInputDataFormat(NetworkConfig &config, Blob *input, cons
     } else if (type == DEVICE_ARM || type == DEVICE_METAL) {
         input->GetBlobDesc().data_format = DATA_FORMAT_NC4HW4;
     } else if (type == DEVICE_OPENCL) {
+        LOGE("set data format in opencl\n");
         input->GetBlobDesc().data_format = DATA_FORMAT_NHC4W4;
     }
 }
@@ -163,7 +166,7 @@ Status BlobManager::AllocateBlobMemory(int flag) {
             DataFlagUtils::ChangeStatus(current_blob->GetFlag()) != DataFlagUtils::ChangeStatus(flag)) {
             continue;
         }
-        // todo. need refactor
+        // TODO. need refactor
         BlobMemorySizeInfo info = device_->Calculate(current_blob->GetBlobDesc());
         if (info.dims.size() > 1 && config_.share_memory_mode != SHARE_MEMORY_MODE_DEFAULT) {
             return Status(TNNERR_SHARE_MEMORY_MODE_NOT_SUPPORT, "share_memory_mode option is unsupported");
@@ -187,7 +190,7 @@ Status BlobManager::AllocateBlobMemory(int flag) {
                 DataFlagUtils::ChangeStatus(current_blob->GetFlag()) != DataFlagUtils::ChangeStatus(flag)) {
                 continue;
             }
-            
+
             // ASSERT(current_blob->count() > 0);
             if (DimsVectorUtils::Count(current_blob->GetBlobDesc().dims) < 0) {
                 LOGE("Got empty blob, name:%s\n", current_blob_name.c_str());
@@ -212,7 +215,7 @@ Status BlobManager::AllocateBlobMemory(int flag) {
                 DataFlagUtils::ChangeStatus(current_blob->GetFlag()) != DataFlagUtils::ChangeStatus(flag)) {
                 continue;
             }
-            
+
             if (input_shapes_map.count(current_blob_name) == 0) {
                 std::map<Blob *, BlobMemory *>::const_iterator blob_memory_iter =
                     blob_memory_mapping_.find(current_blob);
@@ -247,7 +250,7 @@ Status BlobManager::AllocateBlobMemory(int flag) {
                         forward_memory_size, init_thread_id_, device_,
                         config_.device_id, this, status);
                 BREAK_IF(status != TNN_OK);
-		shared_memory_allocated_ = true;
+                shared_memory_allocated_ = true;
                 MemoryUnifyAssignStrategy strategy(share_memory.shared_memory_data);
                 status = blob_memory_pool_iter.second->AssignAllBlobMemory(strategy);
                 BREAK_IF(status != TNN_OK);
@@ -335,6 +338,14 @@ void BlobManager::BindBlobMemory() {
         if (device_->GetDeviceType() == DEVICE_OPENCL &&
             iter.second->GetBlobMemorySizeInfo().dims.size() == 1) {
             auto desc = iter.first->GetBlobDesc();
+            // // debug
+            // std::stringstream tmp;
+            // for (auto& d : iter.second->GetBlobMemorySizeInfo().dims) {
+                // tmp << d << ",";
+            // }
+            // LOGE("blob memory dims:%s\n", tmp.str().c_str());
+            // LOGE("set data_format in opencl\n");
+            // // end debug
             desc.data_format = DATA_FORMAT_NCHW;
             iter.first->SetBlobDesc(desc);
         }

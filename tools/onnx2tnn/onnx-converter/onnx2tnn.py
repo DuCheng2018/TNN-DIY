@@ -66,8 +66,8 @@ def main():
                         required=False,
                         action='store',
                         help='the output dir for tnn model')
-    parser.add_argument('-input_shape', 
-                        required=False, 
+    parser.add_argument('-input_shape',
+                        required=False,
                         action='store',
                         nargs='+',
                         help='manually-set static input shape, useful when the input shape is dynamic')
@@ -93,6 +93,7 @@ def main():
     if model_half == None:
         model_half = '0'
 
+    print(onnx2tnn.__file__)
     if algo_version == None:
         print('Please add model version with -version=xxxx')
         return

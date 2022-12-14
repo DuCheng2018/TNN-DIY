@@ -172,7 +172,7 @@ echo '******************** step 4: copy to release ********************'
 cd $TNN_BUILD_PATH
 mkdir -p release
 cd release
-rm -rf *
+rm -rf armeabi-v7a
 mkdir -p armeabi-v7a
 # mkdir -p arm64-v8a
 cd ..

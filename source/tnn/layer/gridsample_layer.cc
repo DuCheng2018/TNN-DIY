@@ -24,14 +24,32 @@ Status GridSampleLayer::InferOutputDataType() {
 
 Status GridSampleLayer::InferOutputShape(bool ignore_error) {
     BaseLayer::InferOutputShape(ignore_error);
-    
+
     Blob* input_blob  = input_blobs_[0];
     Blob* grid_blob  = input_blobs_[1];
     Blob* output_blob = output_blobs_[0];
-     
+    // if (nullptr == grid_blob->GetHandle().base) {
+        // LOGE("grid blob handle nullptr");
+    // } else {
+        // LOGE("grid blob handle bytes_offset:%llu", grid_blob->GetHandle().bytes_offset);
+    // }
+    // if (nullptr == input_blob->GetHandle().base) {
+        // LOGE("input blob handle nullptr");
+    // } else {
+        // LOGE("input blob handle bytes_offset:%llu", input_blob->GetHandle().bytes_offset);
+    // }
+    // if (nullptr == output_blob->GetHandle().base) {
+        // LOGE("output blob handle nullptr");
+    // } else {
+        // LOGE("output blob handle bytes_offset:%llu", output_blob->GetHandle().bytes_offset);
+    // }
+    if (nullptr == grid_blob) {
+        LOGE("grid blob is nullptr\n");
+    }
+
     auto input_dims = input_blob->GetBlobDesc().dims;
     auto grid_dims = grid_blob->GetBlobDesc().dims;
-    
+
     auto output_dims = input_dims;
     for (int i=2,j=1; i<output_dims.size() && j<grid_dims.size(); i++,j++) {
         output_dims[i] = grid_dims[j];

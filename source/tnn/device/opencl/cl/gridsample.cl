@@ -92,9 +92,12 @@ __kernel void BilinearGridSampleCenterAlign(GLOBAL_SIZE_2_DIMS __read_only image
                   sw_within_bound.w ? sw.w : 0);
     se = (FLOAT4)(se_within_bound.x ? se.x : 0, se_within_bound.y ? se.y : 0, se_within_bound.z ? se.z : 0,
                   se_within_bound.w ? se.w : 0);
+<<<<<<< HEAD
     //    FLOAT4 ne = select((FLOAT)0, (ix - ix_sw) * (iy_sw - iy), ne_within_bound);
     //    FLOAT4 sw = select((FLOAT)0, (ix_ne - ix) * (iy - iy_ne), sw_within_bound);
     //    FLOAT4 se = select((FLOAT)0, (ix - ix_nw) * (iy - iy_nw), se_within_bound);
+=======
+>>>>>>> 10b35d6c4432309a6a81a64ae47e0e885344ad4b
 
     int nw_index_x = select(0, (int)(ix_nw.x), nw_within_bound.x);
     int nw_index_y = select(0, (int)(iy_nw.x), nw_within_bound.x);
@@ -124,7 +127,6 @@ __kernel void BilinearGridSampleCenterAlign(GLOBAL_SIZE_2_DIMS __read_only image
     WI_F(output, (int2)((output_c_block_idx * out_width + output_w_idx), output_b_idx * out_height + output_h_idx * 4),
          res);
 
-    //
     if (output_h_idx * 4 + 1 >= out_height) {
         return;
     }

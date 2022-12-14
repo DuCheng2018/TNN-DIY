@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# ABIA32="armeabi-v7a with NEON"
-ABIA32="armeabi-v7a"
-ABIA64="arm64-v8a"
+ABIA32="armeabi-v7a with NEON"
+# ABIA32="armeabi-v7a"
+# ABIA64="arm64-v8a"
 STL="c++_static"
 #STL="gnustl_static"
 SHARED_LIB="ON"
@@ -57,9 +57,9 @@ then
     if [ ! -d ${TNN_ROOT_PATH}/third_party/huawei_npu/cpp_lib/ ]; then
          mkdir -p ${TNN_ROOT_PATH}/third_party/huawei_npu/cpp_lib/
     fi
-    mkdir -p ${TNN_ROOT_PATH}/third_party/huawei_npu/cpp_lib/armeabi-v7a
+    mkdir -p ${TNN_ROOT_PATH}/third_party/huawei_npu/cpp_lib/armeabi-v7a-neon
     # mkdir -p ${TNN_ROOT_PATH}/third_party/huawei_npu/cpp_lib/arm64-v8a
-    cp $ANDROID_NDK/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a/libc++_shared.so ${TNN_ROOT_PATH}/third_party/huawei_npu/cpp_lib/armeabi-v7a/
+    cp $ANDROID_NDK/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a/libc++_shared.so ${TNN_ROOT_PATH}/third_party/huawei_npu/cpp_lib/armeabi-v7a-neon/
     # cp $ANDROID_NDK/sources/cxx-stl/llvm-libc++/libs/arm64-v8a/libc++_shared.so ${TNN_ROOT_PATH}/third_party/huawei_npu/cpp_lib/arm64-v8a/
 fi
 
@@ -76,22 +76,23 @@ source $TNN_VERSION_PATH/add_version_attr.sh
 echo ' '
 echo '******************** step 2: start build rpn arm32 ********************'
 cd $TNN_BUILD_PATH
-if [ -x "build32" ];then
+if [ -x "build32-neon" ];then
     if [ "${INCREMENTAL_COMPILE}" = "OFF" ];then
-        echo 'remove build32'
-        rm -r build32
-        mkdir build32
+        echo 'remove build32-neon'
+        rm -r build32-neon
+        mkdir build32-neon
     fi
 else
-    mkdir -p build32
+    mkdir -p build32-neon
 fi
 
-cd build32
+cd build32-neon
 echo $ABIA32
 cmake ${TNN_ROOT_PATH} \
       -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
       -DDEBUG:BOOL=$DEBUG \
       -DANDROID_ABI="${ABIA32}" \
+      -DANDROID_ARM_NEON:BOOL=ON \
       -DANDROID_STL=${STL} \
       -DANDROID_NATIVE_API_LEVEL=${ANDROID_API_LEVEL}  \
       -DANDROID_TOOLCHAIN=clang \
@@ -160,10 +161,10 @@ echo '******************** step 4: add version attr ********************'
 #添加版本信息到库文件
 cd $TNN_BUILD_PATH
 if [ "$SHARED_LIB" = "ON" ];then
-AddAllVersionAttr "$TNN_BUILD_PATH/build32/libTNN.so"
+AddAllVersionAttr "$TNN_BUILD_PATH/build32-neon/libTNN.so"
 # AddAllVersionAttr "$TNN_BUILD_PATH/build64/libTNN.so"
 else
-AddAllVersionAttr "$TNN_BUILD_PATH/build32/libTNN.a"
+AddAllVersionAttr "$TNN_BUILD_PATH/build32-neon/libTNN.a"
 # AddAllVersionAttr "$TNN_BUILD_PATH/build64/libTNN.a"
 fi
 
@@ -172,20 +173,20 @@ echo '******************** step 4: copy to release ********************'
 cd $TNN_BUILD_PATH
 mkdir -p release
 cd release
-rm -rf *
-mkdir -p armeabi-v7a
+rm -rf armeabi-v7a-neon
+mkdir -p armeabi-v7a-neon
 # mkdir -p arm64-v8a
 cd ..
 if [ "$SHARED_LIB" = "ON" ];then
-    cp build32/libTNN.so release/armeabi-v7a
+    cp build32-neon/libTNN.so release/armeabi-v7a-neon
     # cp build64/libTNN.so release/arm64-v8a
 else
-    cp build32/libTNN.a release/armeabi-v7a
+    cp build32-neon/libTNN.a release/armeabi-v7a-neon
     # cp build64/libTNN.a release/arm64-v8a
 fi
 cp -r ${TNN_ROOT_PATH}/include release
 if [  "$HUAWEI_NPU" == "ON" ]; then
-    cp ${TNN_ROOT_PATH}/third_party/huawei_npu/hiai_ddk_latest/armeabi-v7a/* release/armeabi-v7a/
+    cp ${TNN_ROOT_PATH}/third_party/huawei_npu/hiai_ddk_latest/armeabi-v7a/* release/armeabi-v7a-neon/
     # cp ${TNN_ROOT_PATH}/third_party/huawei_npu/hiai_ddk_latest/arm64-v8a/* release/arm64-v8a/
 fi
 echo "build done!"
