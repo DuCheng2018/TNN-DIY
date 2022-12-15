@@ -113,6 +113,8 @@ Status OpenCLGridsampleLayerAcc::Reshape(const std::vector<Blob *> &inputs, cons
     // LOGE("start Girdsample Acc Reshape: input_dims size:%d, output_dims size:%d\n", input_dims.size(), output_dims.size());
     execute_units_[0].ocl_kernel.setArg(idx++, *((cl::Image *)input->GetHandle().base));
     // LOGE("1\n");
+    execute_units_[0].ocl_kernel.setArg(idx++, *((cl::Image *)grid->GetHandle().base));
+    // LOGE("2\n");
     execute_units_[0].ocl_kernel.setArg(idx++, *((cl::Image *)output->GetHandle().base));
     // LOGE("3\n");
     // std::stringstream tmp;
@@ -135,8 +137,6 @@ Status OpenCLGridsampleLayerAcc::Reshape(const std::vector<Blob *> &inputs, cons
     // } else {
         // LOGE("output blob handle bytes_offset:%llu\n", output->GetHandle().bytes_offset);
     // }
-    execute_units_[0].ocl_kernel.setArg(idx++, *((cl::Image *)grid->GetHandle().base));
-    // LOGE("2\n");
 
     execute_units_[0].ocl_kernel.setArg(idx++, static_cast<int32_t>(input_height));
     // LOGE("4\n");
