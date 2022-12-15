@@ -70,8 +70,14 @@ Status CpuGridSampleLayerAcc::Forward(const std::vector<Blob *> &inputs, const s
                 float x            = grid_position[0];
                 float y            = grid_position[1];
                 // unnormalize
-                float ix = (x + 1) * input_width * 0.5 - 0.5;
-                float iy = (y + 1) * input_height * 0.5 - 0.5;
+                float ix, iy;
+                if (0 == layer_param->align_corners) {
+                    ix = (x + 1) * input_width * 0.5 - 0.5;
+                    iy = (y + 1) * input_height * 0.5 - 0.5;
+                } else {
+                    ix = (x + 1) * 0.5 * (input_width - 1.0);
+                    iy = (y + 1) * 0.5 * (input_height - 1.0);
+                }
                 // get corner pixel values from (x, y)
                 // for 4d, we use north-east-south-west
                 int ix_nw = static_cast<int>(std::floor(ix));

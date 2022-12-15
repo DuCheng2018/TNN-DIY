@@ -25,8 +25,8 @@ string OnnxOpConverterGridSample::TNNOpType(NodeProto &node,
 string OnnxOpConverterGridSample::TNNLayerParam(NodeProto &node,
                                                OnnxNetInfo &net_info) {
     ostringstream layer_param;
-    auto mode = get_node_attr_ai(node, "mode", net_info, 2);
-    if (mode.size() > 0 && mode[0] == 0) {
+    auto mode = get_node_attr_s(node, "mode", "bilinear");
+    if (mode.size() > 0 && mode == "bilinear") {
         //bilinear
         layer_param << "2 ";
     } else {
@@ -38,8 +38,8 @@ string OnnxOpConverterGridSample::TNNLayerParam(NodeProto &node,
         return "";
     }
 
-    auto pade_type = get_node_attr_ai(node, "padding_mode", net_info, 3);
-    if (pade_type.size() > 0 && pade_type[0] == 0) {
+    auto pade_type = get_node_attr_s(node, "padding_mode", "zeros");
+    if (pade_type.size() > 0 && pade_type == "zeros") {
         //padding zeros
         layer_param << "0 ";
     } else {
@@ -47,10 +47,10 @@ string OnnxOpConverterGridSample::TNNLayerParam(NodeProto &node,
         return "";
     }
 
-    auto align_corners = get_node_attr_ai(node, "align_corners", net_info, 4);
-    if (align_corners.size() > 0 && align_corners[0] == 0) {
-        //false
-        layer_param << "0 ";
+    auto align_corners = get_node_attr_i(node, "align_corners", 0);
+    if (0 == align_corners || 1 == align_corners) {
+        // 0:false, 1:true
+        layer_param << (0 == align_corners ? "0 " : "1 ");
     } else {
         LOGE("GridSample dont support align_corners\n");
         return "";
