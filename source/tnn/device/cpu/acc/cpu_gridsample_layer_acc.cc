@@ -32,7 +32,7 @@ static inline bool within_bounds_2d(int h, int w, int H, int W) {
 
 Status CpuGridSampleLayerAcc::Forward(const std::vector<Blob *> &inputs, const std::vector<Blob *> &outputs) {
     auto layer_param = dynamic_cast<GridSampleLayerParam *>(param_);
-    if (layer_param->mode != 2 || layer_param->pad_type != 0 || (layer_param->align_corners != 0 && layer_param->align_corners != 1)) {
+    if (layer_param->mode != 2 || layer_param->pad_type != 0 || layer_param->align_corners != 0) {
         return Status(TNNERR_PARAM_ERR, "CpuGridSampleLayerAcc dont support some mode or pade type or align_corners");
     }
     auto input_dims  = inputs[0]->GetBlobDesc().dims;

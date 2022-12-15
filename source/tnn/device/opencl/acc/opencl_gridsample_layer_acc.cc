@@ -25,7 +25,6 @@ public:
 
     virtual Status Reshape(const std::vector<Blob *> &inputs, const std::vector<Blob *> &outputs) override;
 
-    // grid_sample op crash when running on opencl after grid parameter has been optimized as constant in tnnmodel.
     // virtual Status ReloadConstantBlobs(const std::vector<Blob *> &inputs,
                                        // bool only_reload_shape_differ_blob = false) override {
         // return TNN_OK;
