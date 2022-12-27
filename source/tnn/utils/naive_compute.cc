@@ -218,7 +218,7 @@ void NaivePooling3D(T *input_ptr, T *output_ptr, DimsVector dims_input, DimsVect
                             for (int inh = hstart; inh < hend; ++inh) {
                                 for (int inw = wstart; inw < wend; ++inw) {
                                     cur_val =
-                                        in_current_batch[c * input_height * input_width * input_depth + 
+                                        in_current_batch[c * input_height * input_width * input_depth +
                                                             ind * input_height * input_width + inh * input_width + inw];
 
                                     if (pool_type == 0) {  // max pooling
@@ -448,7 +448,7 @@ template void NaiveConv1D<float, float, float, float>(void *input_ptr, void *out
 template <typename Tin, typename Tw, typename Tacc, typename Tout>
 void NaiveConv(void *input_ptr, void *output_ptr, void *weight_ptr, void *bias, DimsVector dims_input,
                DimsVector dims_output, int stride_y, int stride_x, int kernel_size_y, int kernel_size_x, int pad_y,
-               int pad_x, int group, int dilation, int activation_type, float *weight_scale, int weight_scale_len,
+               int pad_x, int group, int dilation_y, int dilation_x, int activation_type, float *weight_scale, int weight_scale_len,
                int8_t *relu6_max, int relu6_max_len, int fusion_type, void *add_input, float *add_scale) {
     Tin *input_data               = static_cast<Tin *>(input_ptr);
     Tw *weight_data               = static_cast<Tw *>(weight_ptr);
@@ -480,12 +480,12 @@ void NaiveConv(void *input_ptr, void *output_ptr, void *weight_ptr, void *bias, 
                         int input_w_start = w * stride_x - pad_x;
                         Tacc result       = static_cast<Tacc>(0.0f);
                         for (int kernel_h = 0; kernel_h < kernel_size_y; ++kernel_h) {
-                            int input_h = input_h_start + kernel_h * dilation;
+                            int input_h = input_h_start + kernel_h * dilation_y;
                             if (input_h < 0 || input_h >= input_height) {
                                 continue;
                             }
                             for (int kernel_w = 0; kernel_w < kernel_size_x; ++kernel_w) {
-                                int input_w = input_w_start + kernel_w * dilation;
+                                int input_w = input_w_start + kernel_w * dilation_x;
                                 if (input_w < 0 || input_w >= input_width) {
                                     continue;
                                 }
@@ -782,21 +782,21 @@ template void NaiveConvBias<int8_t, int8_t, int32_t, int8_t>(
 template void NaiveConv<float, float, float, float>(void *input_ptr, void *output_ptr, void *weight_ptr, void *bias,
                                                     DimsVector dims_input, DimsVector dims_output, int stride_y,
                                                     int stride_x, int kernel_size_y, int kernel_size_x, int pad_y,
-                                                    int pad_x, int group, int dilation, int activation_type,
+                                                    int pad_x, int group, int dilation_y, int dilation_x, int activation_type,
                                                     float *weight_scale, int weight_scale_len, int8_t *relu6_max,
                                                     int relu6_max_len, int fusion_type, void *add_input,
                                                     float *add_scale);
 
 template void NaiveConv<int8_t, int8_t, int32_t, int8_t>(
     void *input_ptr, void *output_ptr, void *weight_ptr, void *bias, DimsVector dims_input, DimsVector dims_output,
-    int stride_y, int stride_x, int kernel_size_y, int kernel_size_x, int pad_y, int pad_x, int group, int dilation,
+    int stride_y, int stride_x, int kernel_size_y, int kernel_size_x, int pad_y, int pad_x, int group, int dilation_y, int dilation_x,
     int activation_type, float *weight_scale, int weight_scale_len,  int8_t *relu6_max, int relu6_max_len,
     int fusion_type, void *add_input, float *add_scale);
 
 template void NaiveConv<bfp16_t, float, float, bfp16_t>(void *input_ptr, void *output_ptr, void *weight_ptr, void *bias,
                                                         DimsVector dims_input, DimsVector dims_output, int stride_y,
                                                         int stride_x, int kernel_size_y, int kernel_size_x, int pad_y,
-                                                        int pad_x, int group, int dilation, int activation_type,
+                                                        int pad_x, int group, int dilation_y, int dilation_x, int activation_type,
                                                         float *weight_scale, int weight_scale_len,  int8_t *relu6_max,
                                                         int relu6_max_len, int fusion_type, void *add_input,
                                                         float *add_scale);
@@ -1665,7 +1665,7 @@ void NaiveDequantBias(const int8_t *input_ptr, const float *scale_ptr, const int
                                                               static_cast<float>(zero_point_ptr[scale_idx]));
             }
         }
-    }    
+    }
 }
 
 void NaiveQuantBias(const float *input_ptr, const float *scale_ptr, const int8_t *zero_point_ptr, int scale_len,
@@ -1687,8 +1687,8 @@ void NaiveQuantBias(const float *input_ptr, const float *scale_ptr, const int8_t
             }
        }
     }
-}    
+}
 
 }  // namespace TNN_NS
 
-                                                     
+

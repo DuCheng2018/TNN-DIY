@@ -175,12 +175,12 @@ Status CpuConvLayerAcc::Forward(const std::vector<Blob *> &inputs, const std::ve
         NaiveConv<float, float, float, float>(input_ptr, output_ptr, weight_ptr, bias_ptr, input_dims, output_dims,
                                               param->strides[1], param->strides[0], param->kernels[1],
                                               param->kernels[0], param->pads[2], param->pads[0], param->group,
-                                              param->dialations[1], param->activation_type, NULL, 0, NULL, 0);
+                                              param->dialations[1], param->dialations[0], param->activation_type, NULL, 0, NULL, 0);
     } else if (data_type == DATA_TYPE_BFP16) {
         NaiveConv<bfp16_t, float, float, bfp16_t>(input_ptr, output_ptr, weight_ptr, bias_ptr, input_dims, output_dims,
                                                   param->strides[1], param->strides[0], param->kernels[1],
                                                   param->kernels[0], param->pads[2], param->pads[0], param->group,
-                                                  param->dialations[1], param->activation_type, NULL, 0, NULL, 0);
+                                                  param->dialations[1], param->dialations[0], param->activation_type, NULL, 0, NULL, 0);
     } else if (data_type == DATA_TYPE_INT8) {
         auto weight_scale = buffer_scale_.force_to<float *>();
         int zero_point_len_w = resource->zero_point_handle.GetDataCount();
