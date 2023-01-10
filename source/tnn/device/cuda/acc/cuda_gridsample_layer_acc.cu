@@ -32,7 +32,7 @@ __global__ void gridsample_corner_align_kernel(const float* input_data, const fl
     float* output_ptr = output_data + blockIdx.y * output_channel_area * channel;
 
     CUDA_KERNEL_LOOP(index, output_channel_area) {
-        float ix = (grid_ptr[2*index] + 1) * input_width * 0.5 -0.5;
+        float ix = (grid_ptr[2*index] + 1) * input_width * 0.5 - 0.5;
         float iy = (grid_ptr[2*index+1] + 1) * input_height * 0.5 - 0.5;
         // get corner pixel values from (x, y)
         // for 4d, we use north-east-south-west
