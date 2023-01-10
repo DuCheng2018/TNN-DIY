@@ -12,7 +12,7 @@ set TNN_DIR=%~dp0..\
 set BUILD_DIR=%~dp0build_cuda_msvc
 set TENSORRT_ROOT_DIR=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\TensorRT-8.4.3.1
 @REM for example    F:\Deps\TensorRT-7.1.3.4.Windows10.x86_64.cuda-11.0.cudnn8.0\TensorRT-7.1.3.4
-set CUDNN_ROOT_DIR=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6
+set CUDNN_ROOT_DIR=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\cudnn
 @REM for example    F:\Deps\cudnn-11.0-windows-x64-v8.0.5.39\cuda\
 set TNN_INSTALL_DIR=%~dp0cuda_msvc_release
 
