@@ -7,7 +7,7 @@ add_definitions(-DTHRUST_IGNORE_DEPRECATED_CPP_DIALECT)
 add_definitions(-DCUB_IGNORE_DEPRECATED_CPP11)
 
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-include_directories(thirdparty/cub-1.9.10-1)
+include_directories(thirdparty/cub)
 
 if(NOT DEFINED ENV{CUDNN_ROOT_DIR})
     message(FATAL_ERROR "not defined environment variable:CUDNN_ROOT_DIR")

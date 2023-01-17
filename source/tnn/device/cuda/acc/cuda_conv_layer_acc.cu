@@ -76,17 +76,40 @@ Status CudaConvLayerAcc::Init(Context *context, LayerParam *param, LayerResource
         dynamic_cast<ConvLayerResource *>(resource);
     float *weights = conv_resource->filter_handle.force_to<float *>();
 
-    size_t weights_size = sizeof(float) * input_dims[1] * output_dims[1] *
-        conv_param->kernels[1] * conv_param->kernels[0];
-
+    // DIY code
+    size_t weights_size = 0;
+    if (DATA_TYPE_HALF == conv_resource->filter_handle.GetDataType()) {
+        weights_size = 2 * input_dims[1] * output_dims[1] * 
+            conv_param->kernels[1] * conv_param->kernels[0];
+    } else {
+        weights_size = sizeof(float) * input_dims[1] * output_dims[1] *
+            conv_param->kernels[1] * conv_param->kernels[0];
+    }
     CUDA_CHECK(cudaMalloc((void **)&weights_, weights_size));
     CUDA_CHECK(cudaMemcpy(weights_, weights, weights_size, cudaMemcpyHostToDevice));
-
     if (conv_param->bias) {
         bias_term_ = true;
-        if (output_dims[1] * sizeof(float) != conv_resource->bias_handle.GetBytesSize()) {
-            return TNNERR_MODEL_ERR;
+        if (DATA_TYPE_HALF == conv_resource->bias_handle.GetDataType()) {
+            if (output_dims[1] * 2 != conv_resource->bias_handle.GetBytesSize()) {
+                return TNNERR_MODEL_ERR;
+            } 
+        } else {
+            if (output_dims[1] * sizeof(float) != conv_resource->bias_handle.GetBytesSize()) {
+                return TNNERR_MODEL_ERR;
+            }
         }
+    // end DIY
+    // size_t weights_size = sizeof(float) * input_dims[1] * output_dims[1] *
+        // conv_param->kernels[1] * conv_param->kernels[0];
+
+    // CUDA_CHECK(cudaMalloc((void **)&weights_, weights_size));
+    // CUDA_CHECK(cudaMemcpy(weights_, weights, weights_size, cudaMemcpyHostToDevice));
+
+    // if (conv_param->bias) {
+        // bias_term_ = true;
+        // if (output_dims[1] * sizeof(float) != conv_resource->bias_handle.GetBytesSize()) {
+            // return TNNERR_MODEL_ERR;
+        // }
 
         const int bias_dim[] = {1, output_dims[1], 1, 1};
         CUDNN_CHECK(cudnnCreateTensorDescriptor(&bias_desc_));

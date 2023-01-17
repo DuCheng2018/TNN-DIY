@@ -10,9 +10,9 @@ if defined CUDA_PATH (
 
 set TNN_DIR=%~dp0..\
 set BUILD_DIR=%~dp0build_cuda_msvc
-set TENSORRT_ROOT_DIR=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\TensorRT-8.4.3.1
+set TENSORRT_ROOT_DIR=D:\xjsd-face\TensorRT-8.4.3.1
 @REM for example    F:\Deps\TensorRT-7.1.3.4.Windows10.x86_64.cuda-11.0.cudnn8.0\TensorRT-7.1.3.4
-set CUDNN_ROOT_DIR=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\cudnn
+set CUDNN_ROOT_DIR=D:\xjsd-face\cudnn
 @REM for example    F:\Deps\cudnn-11.0-windows-x64-v8.0.5.39\cuda\
 set TNN_INSTALL_DIR=%~dp0cuda_msvc_release
 
@@ -22,7 +22,7 @@ if not exist %BUILD_DIR% (
 
 echo Building TNN ...
 cd %BUILD_DIR%
-cmake ^
+cmake -G "Visual Studio 17 2022" -A x64 ^
 -DCMAKE_BUILD_TYPE=Release ^
 -DCMAKE_SYSTEM_NAME=Windows ^
 -DTNN_CUDA_ENABLE=ON ^
@@ -32,7 +32,7 @@ cmake ^
 -DINTTYPES_FORMAT=C99 ^
 ../..
 
-cmake --build . --config Release -j4
+cmake --build . --config Release -j8
 if !errorlevel! == 1 (
     echo Building TNN Failed
     goto errorHandle
@@ -64,13 +64,13 @@ goto :eof
     copy %BUILD_DIR%\test\Release\TNNTest.exe %TNN_INSTALL_DIR%\bin\
 
     :: deps bin
-    copy %TENSORRT_ROOT_DIR%\lib\nvinfer.dll %TNN_INSTALL_DIR%\bin\
-    copy %TENSORRT_ROOT_DIR%\lib\nvinfer_plugin.dll %TNN_INSTALL_DIR%\bin\
-    copy %TENSORRT_ROOT_DIR%\lib\myelin64_1.dll %TNN_INSTALL_DIR%\bin\
-    copy %CUDNN_ROOT_DIR%\bin\cudnn64_8.dll %TNN_INSTALL_DIR%\bin\
-    copy %CUDNN_ROOT_DIR%\bin\cudnn_adv_infer64_8.dll %TNN_INSTALL_DIR%\bin\
-    copy %CUDNN_ROOT_DIR%\bin\cudnn_ops_infer64_8.dll %TNN_INSTALL_DIR%\bin\
-    copy %CUDNN_ROOT_DIR%\bin\cudnn_cnn_infer64_8.dll %TNN_INSTALL_DIR%\bin\
+  ::  copy %TENSORRT_ROOT_DIR%\lib\nvinfer.dll %TNN_INSTALL_DIR%\bin\
+  ::  copy %TENSORRT_ROOT_DIR%\lib\nvinfer_plugin.dll %TNN_INSTALL_DIR%\bin\
+  ::  copy %TENSORRT_ROOT_DIR%\lib\myelin64_1.dll %TNN_INSTALL_DIR%\bin\
+  ::  copy %CUDNN_ROOT_DIR%\bin\cudnn64_8.dll %TNN_INSTALL_DIR%\bin\
+  ::  copy %CUDNN_ROOT_DIR%\bin\cudnn_adv_infer64_8.dll %TNN_INSTALL_DIR%\bin\
+  ::  copy %CUDNN_ROOT_DIR%\bin\cudnn_ops_infer64_8.dll %TNN_INSTALL_DIR%\bin\
+  ::  copy %CUDNN_ROOT_DIR%\bin\cudnn_cnn_infer64_8.dll %TNN_INSTALL_DIR%\bin\
 
     goto :returnOk
 
